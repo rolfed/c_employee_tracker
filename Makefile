@@ -4,7 +4,7 @@ OBJ = $(patsubst src/%.c, obj/%.o, $(SRC))
 
 run: clean default
 	./$(TARGET) -f ./mynewdb.db -n 
-	./$(TARGET) -f ./mynewdb.db -a "Timmy H.,123 Sheshire Ln.,120"
+	./$(TARGET) -f ./mynewdb.db  
 
 default: $(TARGET)
 
@@ -16,5 +16,5 @@ clean:
 $(TARGET): $(OBJ)
 	gcc -o $@ $?
 
-obj/%.o : src/%.c
+obj/%.o: src/%.c
 	gcc -c $< -o $@ -Iinclude
