@@ -17,6 +17,7 @@ void print_usage(char *argv[]) {
 int main(int argc, char *argv[]) {
   char *filepath = NULL;
   bool newfile = false;
+  char *addstring = NULL;
   int c;
 
   int dbfd = -1;
