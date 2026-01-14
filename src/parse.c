@@ -10,6 +10,11 @@
 #include "common.h"
 #include "parse.h"
 
+int add_employee(struct dbheader_t *dbhdr, struct employee_t *employees, char *addstring) {
+  printf("%s\n", addstring);
+  return 0;
+}
+
 int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employeesOut) {
   if (fd < 0) {
     printf("Got a bad FD from user\n");
@@ -24,7 +29,7 @@ int read_employees(int fd, struct dbheader_t *dbhdr, struct employee_t **employe
     return STATUS_ERROR;
   }
 
-  read(fd, employees, count * sizeof(struct employee_t));
+  read(fd, employees, count*sizeof(struct employee_t));
 
   int i = 0;
   for (; i < count; i++) {

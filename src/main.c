@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   struct dbheader_t *dbhdr = NULL;
   struct employee_t *employees = NULL;
 
-  while ((c = getopt(argc, argv, "nf:")) != -1) {
+  while ((c = getopt(argc, argv, "nf:a:")) != -1) {
     switch (c) {
     case 'n':
       newfile = true;
@@ -79,6 +79,10 @@ int main(int argc, char *argv[]) {
     printf("Failed to read employees");
     return 0;
   };
+
+  if (addstring) {
+    add_employee(dbhdr, employees, addstring);
+  }
 
   output_file(dbfd, dbhdr);
 
