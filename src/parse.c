@@ -9,22 +9,71 @@
 
 #include "common.h"
 #include "parse.h"
+#include "file.h"
+
+int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t *employees, char *name) {
+  if (name == NULL) return STATUS_ERROR;
+  if (employees == NULL) return STATUS_ERROR;
+
+  struct employee_t employee;
+  int tmpfd = create_db_file("db.tmp");
+  off_t offset = sizeof *dbhdr;
+
+  if (tmpfd < 0) return STATUS_ERROR;
+
+  write(tmpfd, dbhdr, sizeof(*dbhdr));
+  
+  for (int i = 0; i < dbhdr->count; i++) {
+    lseek(fd, offset, SEEK_SET);
+    read(fd, &employee, sizeof(employee));
+
+    if (strcmp(employees[i].name, name) == 0) {
+      write(tmpfd, &employee, sizeof(employee));
+    }
+
+    offset += sizeof(employee);
+  };
+
+  dbhdr->count--;
+  lseek(tmpfd, 0, SEEK_SET);
+  write(tmpfd, dbhdr, sizeof(*dbhdr));
+
+  close(fd);
+  close(tmpfd);
+
+  rename("db.tmp", "mynewdb.db");
+
+  unlink("db.tmp");
+
+  return 0;
+}
+
+void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
+  int i = 0;
+  for (; i < dbhdr->count; i++) {
+    printf("=======================\n");
+    printf("\tEmployee Index %d\n", i);
+    printf("\tName: %s\n", employees[i].name);
+    printf("\tAddress: %s\n", employees[i].address);
+    printf("\tHours: %d\n", employees[i].hours);
+  }
+}
 
 int add_employee(struct dbheader_t *dbhdr, struct employee_t **employees, char *addstring) {
 
-  if (NULL == dbhdr) return STATUS_ERROR;
-  if (NULL == employees) return STATUS_ERROR;
-  if (NULL == *employees) return STATUS_ERROR;
-  if (NULL == addstring) return STATUS_ERROR;
+  if (dbhdr == NULL) return STATUS_ERROR;
+  if (employees == NULL) return STATUS_ERROR;
+  if (*employees == NULL) return STATUS_ERROR;
+  if (addstring == NULL) return STATUS_ERROR;
 
   char *name = strtok(addstring, ",");
-  if (NULL == name) return STATUS_ERROR;
+  if (name == NULL) return STATUS_ERROR;
 
   char *address = strtok(NULL, ",");
-  if (NULL == address) return STATUS_ERROR;
+  if (address == NULL) return STATUS_ERROR;
 
   char *hours = strtok(NULL, ",");
-  if (NULL == hours) return STATUS_ERROR;
+  if (hours == NULL) return STATUS_ERROR;
 
   struct employee_t *e = *employees;
   e = realloc(e, sizeof(struct employee_t) * dbhdr->count + 1);
