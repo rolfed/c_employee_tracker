@@ -101,7 +101,9 @@ int main(int argc, char *argv[]) {
   }
 
   if (name) {
-    remove_employee(dbfd, dbhdr, employees, name);
+    if (remove_employee(dbfd, dbhdr, &employees, name) != STATUS_SUCCESS) {
+      printf("Failed to remove employee\n");
+    };
   }
 
   output_file(dbfd, dbhdr, employees);

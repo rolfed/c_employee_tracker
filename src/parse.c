@@ -11,41 +11,43 @@
 #include "parse.h"
 #include "file.h"
 
-int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t *employees, char *name) {
-  if (name == NULL) return STATUS_ERROR;
-  if (employees == NULL) return STATUS_ERROR;
+int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t **employees, char *name) {
 
-  struct employee_t employee;
-  int tmpfd = create_db_file("db.tmp");
-  off_t offset = sizeof *dbhdr;
+  if (!fd || !dbhdr || !employees || !name) return STATUS_ERROR;
 
-  if (tmpfd < 0) return STATUS_ERROR;
+  int employeeIdx = -1;
 
-  write(tmpfd, dbhdr, sizeof(*dbhdr));
-  
   for (int i = 0; i < dbhdr->count; i++) {
-    lseek(fd, offset, SEEK_SET);
-    read(fd, &employee, sizeof(employee));
-
-    if (strcmp(employees[i].name, name) == 0) {
-      write(tmpfd, &employee, sizeof(employee));
+    if (strcmp(employees[i]->name, name) == 0) {
+      employeeIdx = i;
+      break;
     }
+  }
 
-    offset += sizeof(employee);
-  };
+  if (employeeIdx == -1) {
+    printf("Employee not found: %s\n", name);
+    return STATUS_ERROR;
+  }
+
+  // Shift the tail left by one to overwrite the removed element
+  for (int i = employeeIdx; i < dbhdr->count - 1; i++) {
+    (employees)[i] = (employees)[i + 1];
+  }
 
   dbhdr->count--;
-  lseek(tmpfd, 0, SEEK_SET);
-  write(tmpfd, dbhdr, sizeof(*dbhdr));
 
-  close(fd);
-  close(tmpfd);
+  if (dbhdr->count == 0) {
+    free(employees);
+    employees = NULL;
+    return STATUS_SUCCESS;
+  }
 
-  rename("db.tmp", "mynewdb.db");
+  struct employee_t *shrunk = 
+    realloc(employees, dbhdr->count * sizeof(struct employee_t));
 
-  unlink("db.tmp");
+  if (shrunk) *employees = shrunk;
 
-  return 0;
+  return STATUS_SUCCESS;
 }
 
 void list_employees(struct dbheader_t *dbhdr, struct employee_t *employees) {
