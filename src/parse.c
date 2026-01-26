@@ -38,12 +38,12 @@ int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t **employ
 
   if (dbhdr->count == 0) {
     free(*employees);
-    employees = NULL;
+    *employees = NULL;
     return STATUS_SUCCESS;
   }
 
   struct employee_t *shrunk = 
-    realloc(*employees, dbhdr->count * sizeof(struct employee_t));
+    realloc(*employees, sizeof(struct employee_t) * dbhdr->count);
 
   if (shrunk) *employees = shrunk;
 
@@ -140,6 +140,13 @@ int output_file(int fd, struct dbheader_t *dbhdr, struct employee_t *employees) 
   for(; i < realcount; i++) {
     employees[i].hours = htonl(employees[i].hours);
     write(fd, &employees[i], sizeof(struct employee_t));
+  }
+
+  off_t new_size = sizeof(struct dbheader_t) + (sizeof(struct employee_t) * realcount);
+
+  if (ftruncate(fd, new_size) == -1) {
+    perror("ftruncate");
+    return STATUS_ERROR;
   }
 
   return STATUS_SUCCESS;
