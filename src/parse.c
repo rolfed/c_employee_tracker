@@ -18,7 +18,7 @@ int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t **employ
   int employeeIdx = -1;
 
   for (int i = 0; i < dbhdr->count; i++) {
-    if (strcmp(employees[i]->name, name) == 0) {
+    if (strcmp((*employees)[i].name, name) == 0) {
       employeeIdx = i;
       break;
     }
@@ -31,19 +31,19 @@ int remove_employee(int fd, struct dbheader_t *dbhdr, struct employee_t **employ
 
   // Shift the tail left by one to overwrite the removed element
   for (int i = employeeIdx; i < dbhdr->count - 1; i++) {
-    (employees)[i] = (employees)[i + 1];
+    (*employees)[i] = (*employees)[i + 1];
   }
 
   dbhdr->count--;
 
   if (dbhdr->count == 0) {
-    free(employees);
+    free(*employees);
     employees = NULL;
     return STATUS_SUCCESS;
   }
 
   struct employee_t *shrunk = 
-    realloc(employees, dbhdr->count * sizeof(struct employee_t));
+    realloc(*employees, dbhdr->count * sizeof(struct employee_t));
 
   if (shrunk) *employees = shrunk;
 
